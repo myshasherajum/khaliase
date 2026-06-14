@@ -18,7 +18,7 @@ PERIOD_DEFINITIONS = [
     {"label": "12:30 pm - 1:50 pm", "start": "12:30", "end": "13:50"},
     {"label": "2:00 pm - 3:20 pm", "start": "14:00", "end": "15:20"},
     {"label": "3:30 pm - 4:50 pm", "start": "15:30", "end": "16:50"},
-    {"label": "2:00 pm - 4:50 pm", "start": "14:00", "end": "16:50"},
+    {"label": "5:00 pm - 6:20 pm", "start": "17:00", "end": "18:20"},
 ]
 PERIOD_MAP = {period["label"]: period for period in PERIOD_DEFINITIONS}
 

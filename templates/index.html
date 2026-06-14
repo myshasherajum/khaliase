@@ -35,6 +35,39 @@
         <section class="filter-bar">
             <div class="container">
                 <form id="free-room-form" class="stacked-filters board-panel">
+                    <div class="mobile-pickers">
+                        <div class="compact-picker compact-day-picker" aria-haspopup="true" aria-expanded="false">
+                            <span class="compact-label">Day</span>
+                            <button type="button" id="compact-day-field" class="compact-field">
+                                <span class="selected-label">Day</span>
+                                <span class="selected-value">Sunday</span>
+                            </button>
+                            <div class="compact-expanded" id="compact-day-options" role="menu" aria-label="Choose day">
+                                <div class="compact-option-list"></div>
+                            </div>
+                        </div>
+                        <div class="compact-picker compact-period-picker" aria-haspopup="true" aria-expanded="false">
+                            <span class="compact-label">Time</span>
+                            <button type="button" id="compact-period-field" class="compact-field">
+                                <span class="selected-label">Time</span>
+                                <span class="selected-value">Select period</span>
+                            </button>
+                            <div class="compact-expanded" id="compact-period-options" role="menu" aria-label="Choose time">
+                                <div class="compact-option-list"></div>
+                            </div>
+                        </div>
+                        <div class="compact-picker compact-type-picker" aria-haspopup="true" aria-expanded="false">
+                            <span class="compact-label">Type</span>
+                            <button type="button" id="compact-type-field" class="compact-field">
+                                <span class="selected-label">Type</span>
+                                <span class="selected-value">All</span>
+                            </button>
+                            <div class="compact-expanded" id="compact-type-options" role="menu" aria-label="Choose type">
+                                <div class="compact-option-list"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="filter-group period-group">
                         <label class="filter-label">Time</label>
                         <div id="period-filter" class="filter-list horizontal scrollable" role="group">
@@ -42,7 +75,7 @@
                         </div>
                     </div>
 
-                    <div class="filter-group">
+                    <div class="filter-group day-group">
                         <label class="filter-label">Day</label>
                         <div id="day-filter" class="filter-list horizontal" role="group">
                             <button type="button" class="filter-item active" data-value="Sunday">Sun</button>
@@ -54,7 +87,7 @@
                         </div>
                     </div>
 
-                    <div class="filter-group">
+                    <div class="filter-group type-group">
                         <label class="filter-label">Type</label>
                         <div id="room-filter" class="filter-list horizontal" role="group">
                             <button type="button" class="filter-item active" data-value="all">All</button>

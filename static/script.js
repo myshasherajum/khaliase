@@ -3,9 +3,113 @@ const filterGroup = document.getElementById("room-filter");
 const dayGroup = document.getElementById("day-filter");
 const periodGroup = document.getElementById("period-filter");
 
+const compactDayField = document.getElementById("compact-day-field");
+const compactPeriodField = document.getElementById("compact-period-field");
+const compactTypeField = document.getElementById("compact-type-field");
+const compactDayPicker = document.querySelector(".compact-day-picker");
+const compactPeriodPicker = document.querySelector(".compact-period-picker");
+const compactTypePicker = document.querySelector(".compact-type-picker");
+const compactDayList = document.querySelector("#compact-day-options .compact-option-list");
+const compactPeriodList = document.querySelector("#compact-period-options .compact-option-list");
+const compactTypeList = document.querySelector("#compact-type-options .compact-option-list");
+
 let activeDay = "Sunday";
 let activePeriod = "";
 let activeFilter = "all";
+let longPressTimer = null;
+
+function setCompactSelectionLabels() {
+    const dayValue = activeDay || "Sunday";
+    const periodValue = activePeriod ? activePeriod.split(" - ")[0] : "Select period";
+    const typeValue = activeFilter ? (activeFilter === "all" ? "All" : activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)) : "All";
+    document.querySelector(".compact-day-picker .selected-value").textContent = dayValue;
+    document.querySelector(".compact-period-picker .selected-value").textContent = periodValue;
+    document.querySelector(".compact-type-picker .selected-value").textContent = typeValue;
+}
+
+function syncCompactOptions() {
+    if (dayGroup) {
+        compactDayList.innerHTML = Array.from(dayGroup.querySelectorAll(".filter-item")).map((button) => {
+            const activeClass = button.classList.contains("active") ? " active" : "";
+            return `<button type="button" class="compact-option${activeClass}" data-group="day" data-value="${button.dataset.value}">${button.textContent}</button>`;
+        }).join("");
+    }
+
+    if (periodGroup) {
+        compactPeriodList.innerHTML = Array.from(periodGroup.querySelectorAll(".filter-item")).map((button) => {
+            const activeClass = button.classList.contains("active") ? " active" : "";
+            return `<button type="button" class="compact-option${activeClass}" data-group="period" data-value="${button.dataset.value}">${button.textContent}</button>`;
+        }).join("");
+    }
+
+    const roomFilter = document.getElementById("room-filter");
+    if (roomFilter) {
+        compactTypeList.innerHTML = Array.from(roomFilter.querySelectorAll(".filter-item")).map((button) => {
+            const activeClass = button.classList.contains("active") ? " active" : "";
+            return `<button type="button" class="compact-option${activeClass}" data-group="type" data-value="${button.dataset.value}">${button.textContent}</button>`;
+        }).join("");
+    }
+}
+
+function openCompactPicker(picker) {
+    closeAllCompactPickers();
+    picker.classList.add("open");
+    picker.setAttribute("aria-expanded", "true");
+}
+
+function closeCompactPicker(picker) {
+    picker.classList.remove("open");
+    picker.setAttribute("aria-expanded", "false");
+}
+
+function closeAllCompactPickers() {
+    closeCompactPicker(compactDayPicker);
+    closeCompactPicker(compactPeriodPicker);
+    closeCompactPicker(compactTypePicker);
+}
+
+function handleCompactSelection(groupType, value) {
+    if (groupType === "day") {
+        activeDay = value;
+        updateGroupButtons(dayGroup, value);
+        closeCompactPicker(compactDayPicker);
+    } else if (groupType === "period") {
+        activePeriod = value;
+        updateGroupButtons(periodGroup, value);
+        closeCompactPicker(compactPeriodPicker);
+    } else if (groupType === "type") {
+        activeFilter = value;
+        updateGroupButtons(filterGroup, value);
+        closeCompactPicker(compactTypePicker);
+    }
+    setCompactSelectionLabels();
+    handleSearch();
+}
+
+function onCompactOptionClick(event) {
+    const button = event.target.closest(".compact-option");
+    if (!button) return;
+    handleCompactSelection(button.dataset.group, button.dataset.value);
+}
+
+function startLongPress(picker) {
+    longPressTimer = window.setTimeout(() => openCompactPicker(picker), 400);
+}
+
+function cancelLongPress() {
+    if (longPressTimer) {
+        window.clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+}
+
+function toggleCompactPicker(picker) {
+    if (picker.classList.contains("open")) {
+        closeCompactPicker(picker);
+    } else {
+        openCompactPicker(picker);
+    }
+}
 
 async function fetchSchedule() {
     try {
@@ -26,6 +130,9 @@ async function fetchSchedule() {
                 .join("");
             activePeriod = data.periods[0] || "";
         }
+
+        syncCompactOptions();
+        setCompactSelectionLabels();
         
         handleSearch();
     } catch (error) {
@@ -121,6 +228,22 @@ function updateGroupButtons(group, selectedValue) {
     buttons.forEach((button) => {
         button.classList.toggle("active", button.dataset.value === selectedValue);
     });
+
+    if (group === dayGroup) {
+        document.querySelectorAll("#compact-day-options .compact-option").forEach((button) => {
+            button.classList.toggle("active", button.dataset.value === selectedValue);
+        });
+    } else if (group === periodGroup) {
+        document.querySelectorAll("#compact-period-options .compact-option").forEach((button) => {
+            button.classList.toggle("active", button.dataset.value === selectedValue);
+        });
+    } else if (group === filterGroup) {
+        document.querySelectorAll("#compact-type-options .compact-option").forEach((button) => {
+            button.classList.toggle("active", button.dataset.value === selectedValue);
+        });
+    }
+
+    setCompactSelectionLabels();
 }
 
 function onToggleClick(event) {
@@ -141,6 +264,48 @@ function onToggleClick(event) {
     updateGroupButtons(group, value);
     handleSearch();
 }
+
+compactDayField.addEventListener("mousedown", () => startLongPress(compactDayPicker));
+compactDayField.addEventListener("touchstart", () => startLongPress(compactDayPicker), { passive: true });
+compactDayField.addEventListener("mouseup", cancelLongPress);
+compactDayField.addEventListener("mouseleave", cancelLongPress);
+compactDayField.addEventListener("touchend", cancelLongPress);
+compactDayField.addEventListener("click", (event) => {
+    toggleCompactPicker(compactDayPicker);
+    event.preventDefault();
+});
+
+compactPeriodField.addEventListener("mousedown", () => startLongPress(compactPeriodPicker));
+compactPeriodField.addEventListener("touchstart", () => startLongPress(compactPeriodPicker), { passive: true });
+compactPeriodField.addEventListener("mouseup", cancelLongPress);
+compactPeriodField.addEventListener("mouseleave", cancelLongPress);
+compactPeriodField.addEventListener("touchend", cancelLongPress);
+compactPeriodField.addEventListener("click", (event) => {
+    toggleCompactPicker(compactPeriodPicker);
+    event.preventDefault();
+});
+
+compactTypeField.addEventListener("mousedown", () => startLongPress(compactTypePicker));
+compactTypeField.addEventListener("touchstart", () => startLongPress(compactTypePicker), { passive: true });
+compactTypeField.addEventListener("mouseup", cancelLongPress);
+compactTypeField.addEventListener("mouseleave", cancelLongPress);
+compactTypeField.addEventListener("touchend", cancelLongPress);
+compactTypeField.addEventListener("click", (event) => {
+    toggleCompactPicker(compactTypePicker);
+    event.preventDefault();
+});
+
+compactDayList.addEventListener("click", onCompactOptionClick);
+compactPeriodList.addEventListener("click", onCompactOptionClick);
+compactTypeList.addEventListener("click", onCompactOptionClick);
+
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".compact-picker")) {
+        closeAllCompactPickers();
+    }
+});
+
+window.addEventListener("resize", closeAllCompactPickers);
 
 async function handleSearch() {
     const day = activeDay;
@@ -176,6 +341,9 @@ async function handleSearch() {
 dayGroup.addEventListener("click", onToggleClick);
 periodGroup.addEventListener("click", onToggleClick);
 filterGroup.addEventListener("click", onToggleClick);
+
+syncCompactOptions();
+setCompactSelectionLabels();
 
 // Initial fetch
 fetchSchedule();
